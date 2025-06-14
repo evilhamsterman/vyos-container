@@ -1,0 +1,99 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  DISTRO:
+    sh: /bin/grep -oP '^ID=\s*\K.*$' /etc/os-release
+  TOOLS:
+    map:
+      bsdtar:
+        arch: libarchive
+        ubuntu: libarchive-tools
+      sqfs2tar:
+        arch: squashfs-tools-ng
+        ubuntu: squashfs-tools-ng
+  NAME: ghcr.io/evilhamsterman/vyos
+
+tasks:
+  _check_tools:
+    desc: Ensure required tools are installed
+    internal: true
+    cmds:
+      - for:
+          var: TOOLS
+        cmd: ! type {{.KEY}}
+
+  _install_tools_ubuntu:
+    internal: true
+    cmds:
+      - apt-get update
+      - apt-get install -y {{ range .TOOLS }} {{.ubuntu}} {{end}}
+
+  _install_tools_arch:
+    internal: true
+    cmds:
+      - yay -Sy --noconfirm {{ range .TOOLS }} {{.arch}} {{end}}
+
+  clean:
+    sources:
+      - "*.iso"
+    status:
+      - "! test -f rootfs.tar"
+      - "! test -d live"
+    cmds:
+      - rm -f rootfs.tar
+      - rm -rf live
+
+  install_tools:
+    desc: Install needed tools
+    cmd:
+      task: "_install_tools_{{.DISTRO}}"
+
+  extract_rootfs:
+    desc: Extracts the squashfs filesystem into a tar file
+    vars:
+      ISO:
+        sh: /bin/ls -1 vyos*-generic-amd64.iso 2> /dev/null | head -n1
+    sources:
+      - "*.iso"
+    preconditions:
+      - sh: stat vyos*-generic-amd64.iso
+        msg: VYOS ISO not found. Please download one from https://vyos.net/get/
+    status:
+      - test -f rootfs.tar
+    cmds:
+      - task: clean
+      - bsdtar -xf {{.ISO}} live/filesystem.squashfs
+      - sqfs2tar live/filesystem.squashfs > rootfs.tar 2> /dev/null
+
+  build:
+    desc: Build the VYOS container
+    vars:
+      LABEL:
+        sh: /bin/ls -1 vyos*-generic-amd64.iso 2> /dev/null | head -n1 | grep -oP '(?<=vyos-).*(?=-generic-amd64\.iso)'
+      TYPE: '{{if (contains "stream" .LABEL)}}stream{{else}}rolling{{end}}'
+      TAGS: '{{if (eq .TYPE "rolling")}}-t {{$.NAME}}:latest {{end}}-t {{.NAME}}:{{.LABEL}} -t {{.NAME}}:{{.TYPE}}'
+      ARGS: '{{default "" .ARGS}}'
+    sources:
+      - "*.iso"
+    deps:
+      - task: extract_rootfs
+    cmd: docker build --output type=image,compression=zstd {{.TAGS}} {{.ARGS}} .
+
+  push:
+    desc: Push the VYOS container to GHCR
+    cmd:
+      task: build
+      vars:
+        ARGS: --push
+
+  local-tags:
+    desc: Create local tags of vyos images for shorter names
+    vars:
+      TAGS:
+        sh: docker image ls -f reference={{.NAME}} --format {{"{{.Tag}}"}}
+    cmds:
+      - for:
+          var: TAGS
+        cmd: docker tag "{{.NAME}}:{{.ITEM}}" "vyos:{{.ITEM}}"
