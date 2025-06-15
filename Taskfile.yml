@@ -87,3 +87,13 @@ tasks:
       task: build
       vars:
         ARGS: --push
+
+  local-tags:
+    desc: Create local tags of vyos images for shorter names
+    vars:
+      TAGS:
+        sh: docker image ls -f reference={{.NAME}} --format {{"{{.Tag}}"}}
+    cmds:
+      - for:
+          var: TAGS
+        cmd: docker tag "{{.NAME}}:{{.ITEM}}" "vyos:{{.ITEM}}"
