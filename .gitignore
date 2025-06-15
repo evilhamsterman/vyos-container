@@ -1,3 +1,5 @@
 *.iso
 rootfs/
 *.squashfs
+*.tar
+.task/

@@ -2,13 +2,11 @@ FROM scratch
 
 ADD rootfs.tar /
 
-
 RUN for service in\
- getty.target \
- auditd.service \
- ;do systemctl mask $service; done
-
-RUN systemctl disable kea-dhcp-ddns-server.service 
+    getty.target \
+    auditd.service \
+    ;do systemctl mask $service; done && \
+    systemctl disable kea-dhcp-ddns-server.service 
 
 HEALTHCHECK --start-period=10s CMD systemctl is-system-running
 
