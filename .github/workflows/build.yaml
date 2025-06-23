@@ -7,10 +7,6 @@ on:
         description: URL to download ISO from
         required: true
         type: string
-      tag:
-        description: Tag name for ISO
-        required: true
-        type: string
 
 jobs:
   build-push:
@@ -21,8 +17,8 @@ jobs:
 
       - name: Install tools
         run: |
-          apt-get update
-          apt-get install -y --no-install-recommends libarchive-tools squashfs-tools-ng wget
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libarchive-tools squashfs-tools-ng wget
 
       - name: Download ISO
         run: wget ${{ inputs.url }}
