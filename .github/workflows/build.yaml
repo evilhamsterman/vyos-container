@@ -7,6 +7,8 @@ on:
         description: URL to download ISO from
         required: true
         type: string
+  schedule:
+    - cron: "34 16 * * *"
 
 jobs:
   build-push:
@@ -18,16 +20,40 @@ jobs:
       - name: Checkout build code
         uses: actions/checkout@v4
 
+      - name: Get latest image URL
+        if: github.event_name == 'scheduled'
+        run: |
+          echo "URL=$(curl -Ls https://api.github.com/repos/vyos/vyos-nightly-build/releases/latest | jq -r '.assets[0].browser_download_url')" >> "$GITHUB_ENV"
+          curl -L https://github.com/vyos/vyos-nightly-build/raw/refs/heads/current/minisign.pub > minisign.pub
+
+      - name: Set URL
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "URL=${{inputs.url}}" >> "$GITHUB_ENV"
+          echo "RWTR1ty93Oyontk6caB9WqmiQC4fgeyd/ejgRxCRGd2MQej7nqebHneP" > minisign.pub
+
+      - name: Set ISO Name
+        run: echo "FILENAME=$(basename $URL)" >> "$GITHUB_ENV"
+
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libarchive-tools squashfs-tools-ng wget
+          sudo apt-get install -y --no-install-recommends \
+            libarchive-tools \
+            squashfs-tools-ng \
+            wget \
+            minisign
 
       - name: Install Task
         uses: arduino/setup-task@v2
 
       - name: Download ISO
-        run: wget -q ${{ inputs.url }}
+        run: |
+          wget -q $URL
+          wget -q $URL.minisig
+
+      - name: Verify ISO
+        run: minisign -Vm $FILENAME
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -41,3 +67,12 @@ jobs:
 
       - name: Run Build and Push task
         run: task push
+
+      - name: Cleanup old packages
+        uses: actions/delete-package-versions@v5
+        if: github.event_name == 'scheduled'
+        with:
+          package-name: vyos
+          package-type: container
+          min-versions-to-keep: 7
+          ignore-versions: "^.*stream.*$"
