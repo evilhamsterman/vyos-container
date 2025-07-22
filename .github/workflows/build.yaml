@@ -70,6 +70,7 @@ jobs:
 
       - name: Cleanup old packages
         uses: actions/delete-package-versions@v5
+        if: github.event_name == 'scheduled'
         with:
           package-name: vyos
           package-type: container
