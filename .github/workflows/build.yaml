@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Get latest image URL
-        if: github.event_name == 'scheduled'
+        if: github.event_name == 'schedule'
         run: |
           echo "URL=$(curl -Ls https://api.github.com/repos/vyos/vyos-nightly-build/releases/latest | jq -r '.assets[0].browser_download_url')" >> "$GITHUB_ENV"
           curl -L https://github.com/vyos/vyos-nightly-build/raw/refs/heads/current/minisign.pub > minisign.pub
@@ -70,7 +70,7 @@ jobs:
 
       - name: Cleanup old packages
         uses: actions/delete-package-versions@v5
-        if: github.event_name == 'scheduled'
+        if: github.event_name == 'schedule'
         with:
           package-name: vyos
           package-type: container
