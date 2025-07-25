@@ -24,7 +24,7 @@ I will also build the latest [Stream](https://vyos.net/get/stream/) when they ar
 
 * `latest` - Latest Rolling release
 * `rolling` - Latest Rolling release
-* `YYYY.MM.DD-xxxx-rolling` - Specific Rolling release. See [VyOS Nightly Builds](https://github.com/vyos/vyos-nightly-build/releases) for recent names and changelogs.k
+* `YYYY.MM.DD-xxxx-rolling` - Specific Rolling release. See [VyOS Nightly Builds](https://github.com/vyos/vyos-nightly-build/releases) for recent names and changelogs.
 * `stream` - Latest Stream release
 * `1.5-stream-YYYY-Qx` - Specific Stream release. See [VyOS Stream Releases](https://vyos.net/get/stream/)
 
