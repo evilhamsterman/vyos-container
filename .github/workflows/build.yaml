@@ -30,7 +30,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: |
           echo "URL=${{inputs.url}}" >> "$GITHUB_ENV"
-          echo "RWTR1ty93Oyontk6caB9WqmiQC4fgeyd/ejgRxCRGd2MQej7nqebHneP" > minisign.pub
+          echo -e "\nRWTR1ty93Oyontk6caB9WqmiQC4fgeyd/ejgRxCRGd2MQej7nqebHneP\n" > minisign.pub
 
       - name: Set ISO Name
         run: echo "FILENAME=$(basename $URL)" >> "$GITHUB_ENV"
