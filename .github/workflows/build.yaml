@@ -75,4 +75,4 @@ jobs:
           package-name: vyos
           package-type: container
           min-versions-to-keep: 7
-          ignore-versions: "^.*stream.*$"
+          ignore-versions: stream
