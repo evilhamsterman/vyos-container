@@ -75,4 +75,4 @@ jobs:
           dry-run: true
           package: vyos
           keep-n-tagged: 7
-          exclude-tagged: '*stream*'
+          exclude-tags: '*stream*'
