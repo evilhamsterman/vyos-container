@@ -72,7 +72,7 @@ jobs:
         uses: dataaxiom/ghcr-cleanup-action@v1
         if: github.event_name == 'schedule'
         with:
-          dry-run: true
+          dry-run: false
           package: vyos
           keep-n-tagged: 7
           exclude-tags: '*stream*'
