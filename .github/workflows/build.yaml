@@ -76,3 +76,4 @@ jobs:
           package: vyos
           keep-n-tagged: 7
           exclude-tags: '*stream*'
+          delete-untagged: true
